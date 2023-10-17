@@ -1,0 +1,18 @@
+CREATE DEFINER=`darko0124`@`%` TRIGGER `CheckForExistingDuplicatedReservationsForTheSamePeriod` AFTER INSERT ON `reservation` FOR EACH ROW BEGIN
+  DECLARE existing_reservations INT;
+  
+  -- Count the number of existing reservations that overlap with the new reservation
+  SET existing_reservations = (
+    SELECT COUNT(*)
+    FROM reservation
+    WHERE room_id = NEW.room_id
+      AND check_in_date = NEW.check_in_date
+      AND check_out_date = NEW.check_out_date
+  );
+
+  -- If there are more than 1 existing reservations, raise an error
+  IF existing_reservations > 1 THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Room is not available for the selected dates';
+  END IF;
+END;
