@@ -1,0 +1,32 @@
+CREATE DEFINER=`darko0124`@`%` PROCEDURE `acho_darko_hotel`.`InsertServiceWithServiceType`(
+    IN serviceName VARCHAR(255),
+    IN servicePrice DECIMAL(10, 2),
+    IN startDate DATE,
+    IN endDate DATE)
+BEGIN
+    DECLARE serviceType VARCHAR(255);
+    
+    -- Set the current date
+    SET @currentDate = CURDATE();
+
+    IF startDate = endDate THEN
+        SET serviceType = 'Limited';
+    ELSEIF serviceName IN ('New Year Eve', 'Christmas Dinner', 'Easter Dinner', 'TeamBuilding') THEN
+        SET serviceType = 'Campaign';
+    ELSE
+        IF startDate >= '2023-11-10' AND endDate <= '2024-02-15' THEN
+            SET serviceType = 'Winter Season';
+        ELSEIF startDate >= '2023-05-25' AND endDate <= '2023-09-10' THEN
+            SET serviceType = 'Summer Season';
+        ELSE
+            IF startDate = '2023-03-01' AND endDate = '2023-03-15' THEN
+                SET serviceType = 'Limited';
+            ELSE
+                SET serviceType = 'Annual';
+            END IF;
+        END IF;
+    END IF;
+
+    INSERT INTO service (service_name, service_price, StartDate, EndDate, ServiceType)
+    VALUES (serviceName, servicePrice, startDate, endDate, serviceType);
+END
