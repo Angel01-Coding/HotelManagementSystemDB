@@ -1,0 +1,50 @@
+-- Working selects
+
+
+select ServiceType , service_price
+from service s
+where ServiceType  =@:service
+
+
+
+-- Working calls
+
+-- Test a service that falls within the winter season
+CALL InsertServiceWithServiceType('Ski', 75.00, '2023-12-20', '2023-12-31');
+
+-- Test a service that falls within the summer season
+CALL InsertServiceWithServiceType('Beach Volleyball', 50.00, '2023-06-01', '2023-07-15');
+
+-- Test a service with specific dates (Limited)
+CALL InsertServiceWithServiceType('Conference Room', 200.00, '2023-03-01', '2023-03-15');
+
+-- Test a service categorized as Campaign
+CALL InsertServiceWithServiceType('New Year Eve', 100.00, '2023-12-31', '2024-01-01');
+
+-- Test a service that doesn't match any criteria (Annual)
+CALL InsertServiceWithServiceType('General Service', 60.00, '2023-04-01', '2023-10-01');
+
+
+
+ -- Select for reservations as a receptionist 
+
+SELECT
+    r.id AS reservation_id,
+    g.guest_first_name,
+    g.guest_last_name,
+    r.check_in_date,
+    r.check_out_date,
+    rm.room_number,
+    rt.type_of_room,
+    rt.people_capacity,
+    rt.price_per_night,
+    COALESCE(SUM(s.service_price * rs.quantity), 0) AS total_service_price,
+    DATEDIFF(r.check_out_date, r.check_in_date) * rt.price_per_night AS total_nights_price,
+    COALESCE(SUM(s.service_price * rs.quantity), 0) + (DATEDIFF(r.check_out_date, r.check_in_date) * rt.price_per_night) AS total_sum_for_reservation
+FROM reservation r
+JOIN guest g ON r.guest_id = g.id
+JOIN room rm ON r.room_id = rm.id
+JOIN room_type rt ON rm.room_type_id = rt.id
+LEFT JOIN reservation_services rs ON r.id = rs.reservation_id
+LEFT JOIN service s ON rs.service_id = s.id
+GROUP BY r.id, g.guest_first_name, g.guest_last_name, r.check_in_date, r.check_out_date, rm.room_number, rt.type_of_room, rt.people_capacity, rt.price_per_night;
